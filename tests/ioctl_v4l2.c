@@ -141,7 +141,12 @@ init_v4l2_format(struct v4l2_format *const f,
 	case V4L2_BUF_TYPE_SDR_OUTPUT:
 		f->fmt.sdr.pixelformat = sf_magic;
 # ifdef HAVE_STRUCT_V4L2_SDR_FORMAT_BUFFERSIZE
-		f->fmt.sdr.buffersize = 0x25afabfb;
+		if (sizeof(f->fmt.sdr.buffersize == sizeof(uint32_t)))
+			f->fmt.sdr.buffersize = 0x25afabfb;
+		else
+			((uint32_t *) &f->fmt.sdr)[1] = 0x25afabfb;
+# else
+		((uint32_t *) &f->fmt.sdr)[1] = 0x25afabfb;
 # endif
 		break;
 #endif
@@ -373,13 +378,12 @@ dprint_ioctl_v4l2(struct v4l2_format *const f,
 # endif /* XLAT_RAW */
 
 		errno = saved_errno;
-		printf(
+		printf(", buffersize=%u}}) = -1 EBADF (%m)\n"
 # ifdef HAVE_STRUCT_V4L2_SDR_FORMAT_BUFFERSIZE
-		       ", buffersize=%u"
-# endif
-		       "}}) = -1 EBADF (%m)\n"
-# ifdef HAVE_STRUCT_V4L2_SDR_FORMAT_BUFFERSIZE
-		       , f->fmt.sdr.buffersize
+		       , sizeof(f->fmt.sdr.buffersize == sizeof(uint32_t))
+			? f->fmt.sdr.buffersize : ((uint32_t *) &f->fmt.sdr)[1]
+# else
+		       , ((uint32_t *) &f->fmt.sdr)[1]
 # endif
 		       );
 		break;
