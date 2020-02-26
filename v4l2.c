@@ -331,6 +331,13 @@ typedef struct v4l2_standard struct_v4l2_standard;
 # include "xlat/v4l2_ioctl_cmds.h"
 #undef XLAT_MACROS_ONLY
 
+# define PRINT_FIELD_PIXFMT(prefix_, where_, field_, xlat_)	\
+	do {							\
+		STRACE_PRINTF("%s%s=", (prefix_), #field_);	\
+		print_pixelformat((where_).field_, (xlat_));	\
+	} while (0)
+
+
 static void
 print_pixelformat(uint32_t fourcc, const struct xlat *xlat)
 {
